@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task List</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6.26.0/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function TaskList() {
+            const [tasks, setTasks] = useState([]);
+            const [error, setError] = useState(null);
+
+            const fetchData = async () => {
+                try {
+                    const response = await axios.get("https://rct305fe-default-rtdb.firebaseio.com/tasks.json");
+                    if (response.data) {
+                        const taskArray = Object.keys(response.data).map((key) => ({
+                            id: key, 
+                            ...response.data[key],
+                        }));
+                        setTasks(taskArray);
+                    } else {
+                        setTasks([]); 
+                    }
+                    setError(null); 
+                } catch (err) {
+                    console.error("Error fetching tasks:", err);
+                    setError("Failed to fetch tasks. Please try again.");
+                }
+            };
+            useEffect(() => {
+                fetchData();
+            }, []);
+
+            return (
+                <div style={{ maxWidth: "400px", margin: "auto", fontFamily: "Arial, sans-serif" }}>
+                    <h1>Task List</h1>
+
+                    {error ? (
+                        <p style={{ color: "red" }}>{error}</p>
+                    ) : (
+                        <ul>
+                            {tasks.map((task) => (
+                                <li key={task.id}>{task.name || "Unnamed Task"}</li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            );
+        }
+        ReactDOM.createRoot(document.getElementById("root")).render(<TaskList />);
+    </script>
+</body>
+</html>
